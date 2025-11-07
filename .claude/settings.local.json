@@ -1,0 +1,21 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(ruby --version:*)",
+      "Bash(node --version:*)",
+      "Bash(pnpm --version:*)",
+      "Bash(psql:*)",
+      "Bash(redis-cli:*)",
+      "Bash(docker --version:*)",
+      "Bash(test:*)",
+      "Bash(openssl rand:*)",
+      "Bash(docker compose:*)",
+      "Bash(jq -r \".[]| \"\"\\(.Name): \\(.State)\"\"\")",
+      "Bash(docker logs:*)",
+      "Bash(docker volume rm:*)",
+      "Bash(curl:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

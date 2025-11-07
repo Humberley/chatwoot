@@ -1,0 +1,46 @@
+{
+  "KANBAN": {
+    "TITLE": "Kanban Board",
+    "CONTACTS_TITLE": "Contacts Kanban",
+    "CONVERSATIONS_TITLE": "Conversations Kanban",
+    "HEADER": {
+      "ADD_COLUMN": "Add Column",
+      "MANAGE_COLUMNS": "Manage Columns"
+    },
+    "COLUMN": {
+      "ADD": "Add Column",
+      "EDIT": "Edit Column",
+      "DELETE": "Delete Column",
+      "DELETE_CONFIRMATION": "Are you sure you want to delete this column?",
+      "NAME": "Column Name",
+      "NAME_PLACEHOLDER": "Enter column name",
+      "COLOR": "Color",
+      "FILTER": "Auto Filter",
+      "EMPTY": "No cards in this column",
+      "CARD_COUNT": "{count} cards"
+    },
+    "CARD": {
+      "MOVE": "Move to...",
+      "MOVED": "Card moved successfully",
+      "MOVE_FAILED": "Failed to move card"
+    },
+    "EMPTY_STATE": {
+      "TITLE": "No columns yet",
+      "SUBTITLE": "Create your first column to start organizing",
+      "CREATE_BUTTON": "Create Column"
+    },
+    "ERRORS": {
+      "FETCH_FAILED": "Failed to load columns",
+      "CREATE_FAILED": "Failed to create column",
+      "UPDATE_FAILED": "Failed to update column",
+      "DELETE_FAILED": "Failed to delete column",
+      "MOVE_FAILED": "Failed to move card"
+    },
+    "SUCCESS": {
+      "COLUMN_CREATED": "Column created successfully",
+      "COLUMN_UPDATED": "Column updated successfully",
+      "COLUMN_DELETED": "Column deleted successfully",
+      "CARD_MOVED": "Card moved successfully"
+    }
+  }
+}

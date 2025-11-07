@@ -1,0 +1,16 @@
+﻿node_modules/
+.pnpm-store/
+vendor/
+log/
+tmp/
+storage/
+.env
+.env.*
+*.log
+coverage/
+.byebug_history
+.bundle/
+.yarn/
+dist/
+public/packs/
+.DS_Store
