@@ -1,0 +1,24 @@
+# Dockerfile customizado para InovaChat
+# Baseado na imagem oficial do Chatwoot mas com customizações
+
+FROM chatwoot/chatwoot:v4.1.0
+
+# Copiar arquivos customizados
+COPY config/application.rb /app/config/application.rb
+COPY config/installation_config.yml /app/config/installation_config.yml
+COPY package.json /app/package.json
+
+# Copiar i18n customizados
+COPY app/javascript/dashboard/i18n/locale/en/login.json /app/app/javascript/dashboard/i18n/locale/en/login.json
+COPY app/javascript/dashboard/i18n/locale/en/inboxMgmt.json /app/app/javascript/dashboard/i18n/locale/en/inboxMgmt.json
+
+# Copiar templates customizados
+COPY app/views/installation/onboarding/index.html.erb /app/app/views/installation/onboarding/index.html.erb
+COPY app/views/layouts/vueapp.html.erb /app/app/views/layouts/vueapp.html.erb
+
+# Rebuild assets (opcional - só se quiser recompilar tudo)
+# RUN bundle exec rake assets:precompile
+
+WORKDIR /app
+
+# Manter o mesmo entrypoint e comando da imagem base
