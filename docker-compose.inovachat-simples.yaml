@@ -1,0 +1,194 @@
+version: "3.7"
+services:
+
+## --------------------------- INOVACHAT (VERSÃO SIMPLES) --------------------------- ##
+
+  inovachat_app:
+    image: chatwoot/chatwoot:v4.1.0  # Usando imagem oficial
+    command: >
+      sh -c "echo 'Rails.application.config.active_storage.variant_processor = :mini_magick' > /app/config/initializers/active_storage.rb &&
+      bundle exec rails s -p 3000 -b 0.0.0.0"
+    entrypoint: docker/entrypoints/rails.sh
+
+    volumes:
+      - inovachat_storage:/app/storage
+      - inovachat_public:/app/public
+      - inovachat_mailer:/app/app/views/devise/mailer
+      - inovachat_mailers:/app/app/views/mailers
+
+    networks:
+      - Fluxernet
+
+    environment:
+      - INSTALLATION_NAME=InovaChat
+      - SECRET_KEY_BASE=cdadbd3bb10b65b5cc5133f0d39cc8e9
+      - FRONTEND_URL=https://crm.fluxer.com.br
+      - FORCE_SSL=true
+      - DEFAULT_LOCALE=pt_BR
+      - TZ=America/Sao_Paulo
+
+      ## Redis / Postgres
+      - REDIS_URL=redis://inovachat_redis:6379
+      - POSTGRES_HOST=pgvector
+      - POSTGRES_USERNAME=postgres
+      - POSTGRES_PASSWORD=c04d9b45127a196f0327b075bfcb4469
+      - POSTGRES_DATABASE=chatwoot
+
+      ## SMTP
+      - MAILER_SENDER_EMAIL=InovaChat <fluxerautoma@gmail.com>
+      - SMTP_DOMAIN=gmail.com
+      - SMTP_ADDRESS=smtp.gmail.com
+      - SMTP_PORT=587
+      - SMTP_SSL=false
+      - SMTP_USERNAME=fluxerautoma@gmail.com
+      - SMTP_PASSWORD=moyvahidngnygnio
+      - SMTP_AUTHENTICATION=login
+      - SMTP_ENABLE_STARTTLS_AUTO=true
+      - SMTP_OPENSSL_VERIFY_MODE=peer
+      - MAILER_INBOUND_EMAIL_DOMAIN=fluxerautoma@gmail.com
+
+      ## Otimizações
+      - SIDEKIQ_CONCURRENCY=10
+      - RACK_TIMEOUT_SERVICE_TIMEOUT=0
+      - RAILS_MAX_THREADS=5
+      - WEB_CONCURRENCY=2
+      - ENABLE_RACK_ATTACK=false
+
+      ## Gerais
+      - NODE_ENV=production
+      - RAILS_ENV=production
+      - INSTALLATION_ENV=docker
+      - RAILS_LOG_TO_STDOUT=true
+      - USE_INBOX_AVATAR_FOR_BOT=true
+      - ENABLE_ACCOUNT_SIGNUP=false
+
+    deploy:
+      mode: replicated
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == manager
+      resources:
+        limits:
+          cpus: "1"
+          memory: 1024M
+      labels:
+        - traefik.enable=true
+        - traefik.http.routers.inovachat_app.rule=Host(`crm.fluxer.com.br`)
+        - traefik.http.routers.inovachat_app.entrypoints=websecure
+        - traefik.http.routers.inovachat_app.tls.certresolver=letsencryptresolver
+        - traefik.http.routers.inovachat_app.priority=1
+        - traefik.http.routers.inovachat_app.service=inovachat_app
+        - traefik.http.services.inovachat_app.loadbalancer.server.port=3000
+        - traefik.http.services.inovachat_app.loadbalancer.passHostHeader=true
+        - traefik.http.middlewares.sslheader-inova.headers.customrequestheaders.X-Forwarded-Proto=https
+        - traefik.http.routers.inovachat_app.middlewares=sslheader-inova
+
+## --------------------------- SIDEKIQ --------------------------- ##
+
+  inovachat_sidekiq:
+    image: chatwoot/chatwoot:v4.1.0  # Usando imagem oficial
+    command: bundle exec sidekiq -C config/sidekiq.yml
+
+    volumes:
+      - inovachat_storage:/app/storage
+      - inovachat_public:/app/public
+      - inovachat_mailer:/app/app/views/devise/mailer
+      - inovachat_mailers:/app/app/views/mailers
+
+    networks:
+      - Fluxernet
+
+    environment:
+      - INSTALLATION_NAME=InovaChat
+      - SECRET_KEY_BASE=cdadbd3bb10b65b5cc5133f0d39cc8e9
+      - FRONTEND_URL=https://crm.fluxer.com.br
+      - FORCE_SSL=true
+      - DEFAULT_LOCALE=pt_BR
+      - TZ=America/Sao_Paulo
+
+      ## Redis / Postgres
+      - REDIS_URL=redis://inovachat_redis:6379
+      - POSTGRES_HOST=pgvector
+      - POSTGRES_USERNAME=postgres
+      - POSTGRES_PASSWORD=c04d9b45127a196f0327b075bfcb4469
+      - POSTGRES_DATABASE=chatwoot
+
+      ## SMTP
+      - MAILER_SENDER_EMAIL=InovaChat <fluxerautoma@gmail.com>
+      - SMTP_DOMAIN=gmail.com
+      - SMTP_ADDRESS=smtp.gmail.com
+      - SMTP_PORT=587
+      - SMTP_SSL=false
+      - SMTP_USERNAME=fluxerautoma@gmail.com
+      - SMTP_PASSWORD=moyvahidngnygnio
+      - SMTP_AUTHENTICATION=login
+      - SMTP_ENABLE_STARTTLS_AUTO=true
+      - SMTP_OPENSSL_VERIFY_MODE=peer
+      - MAILER_INBOUND_EMAIL_DOMAIN=fluxerautoma@gmail.com
+
+      ## Otimizações
+      - SIDEKIQ_CONCURRENCY=10
+      - RACK_TIMEOUT_SERVICE_TIMEOUT=0
+      - RAILS_MAX_THREADS=5
+      - WEB_CONCURRENCY=2
+      - ENABLE_RACK_ATTACK=false
+
+      ## Gerais
+      - NODE_ENV=production
+      - RAILS_ENV=production
+      - INSTALLATION_ENV=docker
+      - RAILS_LOG_TO_STDOUT=true
+      - USE_INBOX_AVATAR_FOR_BOT=true
+      - ENABLE_ACCOUNT_SIGNUP=false
+
+    deploy:
+      mode: replicated
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == manager
+      resources:
+        limits:
+          cpus: "1"
+          memory: 1024M
+
+## --------------------------- REDIS --------------------------- ##
+
+  inovachat_redis:
+    image: redis:latest
+    command: [
+        "redis-server",
+        "--appendonly", "yes",
+        "--port", "6379"
+      ]
+    volumes:
+      - inovachat_redis:/data
+    networks:
+      - Fluxernet
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    deploy:
+      placement:
+        constraints:
+          - node.role == manager
+      resources:
+        limits:
+          cpus: "1"
+          memory: 1024M
+
+## --------------------------- VOLUMES E NETWORKS --------------------------- ##
+
+volumes:
+  inovachat_storage:
+  inovachat_public:
+  inovachat_mailer:
+  inovachat_mailers:
+  inovachat_redis:
+
+networks:
+  Fluxernet:
+    external: true
