@@ -1,32 +1,36 @@
 # 📋 Como Ativar o Kanban no InovaChat
 
-O Kanban está totalmente implementado no código, mas precisa de alguns passos para ativar.
+## ⚠️ IMPORTANTE: Por que o Kanban não aparece?
+
+O Kanban está **totalmente implementado no código**, mas **NÃO está na imagem Docker oficial** `chatwoot/chatwoot:v4.1.0`.
+
+Para usar o Kanban, você precisa **compilar uma imagem custom** que inclui os novos componentes.
 
 ---
 
-## ✅ O que já está pronto:
+## 🎯 Solução: Usar Build Custom
 
-- ✅ Backend completo (model, controller, API, policies)
-- ✅ Frontend completo (componentes Vue, rotas, store Vuex)
-- ✅ Navegação no menu (Conversas > Kanban e Contatos > Kanban)
-- ✅ Migração do banco de dados criada
-- ✅ Associações nos models Account e User
+Criamos um `Dockerfile.kanban` e `docker-compose.inovachat-kanban.yaml` que:
+- Usa a imagem oficial como base
+- Adiciona o código do Kanban
+- Compila os assets JavaScript/Vue
+- Roda a migração do banco automaticamente
 
 ---
 
-## 🚀 Como Ativar (na VPS)
+## 🚀 Passo a Passo (VPS)
 
 ### 1️⃣ **Fazer commit e push** (Windows)
 
 ```bash
 git add .
-git commit -m "Fix: Add Kanban associations and enable feature"
+git commit -m "Add: Kanban feature with custom build"
 git push origin main
 ```
 
 ---
 
-### 2️⃣ **Atualizar código na VPS**
+### 2️⃣ **Na VPS: Atualizar código**
 
 ```bash
 cd ~/chatwoot
@@ -35,138 +39,165 @@ git pull origin main
 
 ---
 
-### 3️⃣ **Rodar migração do banco**
-
-Esta é a parte CRÍTICA - cria a tabela `kanban_columns`:
+### 3️⃣ **Parar stack antiga**
 
 ```bash
-# Rodar migration dentro do container
-docker exec $(docker ps -qf "name=inovachat_inovachat_app") bundle exec rails db:migrate
+docker stack rm inovachat
 ```
 
-Deve mostrar algo como:
+⏰ Aguarde ~1 minuto até parar completamente:
+
+```bash
+watch docker ps
 ```
-== 20251104150000 CreateKanbanColumns: migrating ===============================
--- create_table(:kanban_columns)
-   -> 0.0234s
-== 20251104150000 CreateKanbanColumns: migrated (0.0235s) ======================
+
+Pressione `Ctrl+C` quando não aparecer mais nenhum container do inovachat.
+
+---
+
+### 4️⃣ **Buildar imagem custom**
+
+**⚠️ ATENÇÃO: Esse comando vai demorar ~10-15 minutos!**
+
+Ele vai compilar todos os assets JavaScript/Vue.
+
+```bash
+cd ~/chatwoot
+docker build -f Dockerfile.kanban -t inovachat-kanban:latest .
+```
+
+Você verá várias linhas de build. Aguarde até ver:
+
+```
+Successfully built ...
+Successfully tagged inovachat-kanban:latest
 ```
 
 ---
 
-### 4️⃣ **Restart dos serviços**
+### 5️⃣ **Subir nova stack com Kanban**
 
 ```bash
-docker service update --force inovachat_inovachat_app
-docker service update --force inovachat_inovachat_sidekiq
+docker stack deploy -c docker-compose.inovachat-kanban.yaml inovachat
 ```
 
-⏰ Aguarde ~30 segundos.
+⏰ Aguarde ~2 minutos para os serviços subirem.
 
 ---
 
-### 5️⃣ **Verificar Status**
+### 6️⃣ **Verificar status**
 
 ```bash
 docker service ls
 ```
 
-Deve mostrar **1/1** em todos.
+Deve mostrar **1/1** em todos:
+
+```
+inovachat_inovachat_app       1/1
+inovachat_inovachat_sidekiq   1/1
+inovachat_inovachat_redis     1/1
+```
 
 ---
 
-## 📍 Como Acessar o Kanban
+### 7️⃣ **Ver logs (opcional)**
+
+Se quiser acompanhar o que está acontecendo:
+
+```bash
+docker service logs inovachat_inovachat_app --tail 50 --follow
+```
+
+Pressione `Ctrl+C` para sair dos logs.
+
+---
+
+## 📍 Acessar o Kanban
 
 ### **Kanban de Conversas**
 
-1. Faça login em `https://crm.fluxer.com.br`
-2. No menu lateral esquerdo, clique em **"Conversas"**
-3. Você verá uma opção **"Kanban"** no submenu
-4. Ou acesse direto: `https://crm.fluxer.com.br/app/accounts/{ACCOUNT_ID}/conversations/kanban`
+1. Acesse `https://crm.fluxer.com.br`
+2. Faça login
+3. No menu lateral esquerdo: **Conversas > Kanban**
+
+Ou direto: `https://crm.fluxer.com.br/app/accounts/{ACCOUNT_ID}/conversations/kanban`
 
 ### **Kanban de Contatos**
 
-1. No menu lateral esquerdo, clique em **"Contatos"**
-2. Você verá uma opção **"Kanban"** no submenu
-3. Ou acesse direto: `https://crm.fluxer.com.br/app/accounts/{ACCOUNT_ID}/contacts/kanban`
+1. No menu lateral esquerdo: **Contatos > Kanban**
+
+Ou direto: `https://crm.fluxer.com.br/app/accounts/{ACCOUNT_ID}/contacts/kanban`
 
 ---
 
 ## 🎯 Como Usar
 
-### **Criar Primeira Coluna**
+### **1. Criar primeira coluna**
 
-1. Acesse o Kanban
-2. Clique no botão **"+ Add Column"**
-3. Digite o nome da coluna (ex: "Novos", "Em Andamento", "Concluídos")
-4. Escolha uma cor
-5. Salve
+1. Clique em **"+ Add Column"**
+2. Digite o nome (ex: "Novos", "Em Andamento", "Concluídos")
+3. Escolha uma cor
+4. Salve
 
-### **Adicionar Cards (Conversas/Contatos)**
+### **2. Adicionar cards**
 
-1. Arraste uma conversa ou contato para a coluna
-2. Ou clique no card e selecione a coluna
+- Arraste conversas/contatos para as colunas
+- Cada usuário tem seu próprio board (colunas privadas)
 
-### **Reorganizar**
+### **3. Reorganizar**
 
 - **Mover cards**: Arraste entre colunas
-- **Reordenar colunas**: Arraste o cabeçalho da coluna
-- **Editar coluna**: Clique nos 3 pontos > Editar
-- **Deletar coluna**: Clique nos 3 pontos > Deletar
-
----
-
-## 🔍 Verificar se Migração foi Aplicada
-
-Se quiser confirmar que a tabela foi criada:
-
-```bash
-# Acessar PostgreSQL
-docker exec -it $(docker ps -qf "name=pgvector") psql -U postgres chatwoot
-```
-
-No psql:
-```sql
-\d kanban_columns
-```
-
-Deve mostrar a estrutura da tabela. Digite `\q` para sair.
+- **Reordenar colunas**: Arraste o cabeçalho
+- **Editar**: Clique nos 3 pontos > Editar
+- **Deletar**: Clique nos 3 pontos > Deletar
 
 ---
 
 ## 🔧 Troubleshooting
 
-### Kanban não aparece no menu
+### Build falhou
 
-1. **Limpe cache do navegador**: `Ctrl + Shift + R`
-2. **Faça logout e login novamente**
-3. **Verifique permissões**: Usuário precisa ter role de Agent ou Administrator
+Se o build falhar, veja os logs:
+
+```bash
+docker build -f Dockerfile.kanban -t inovachat-kanban:latest . 2>&1 | tee build.log
+```
+
+Procure por erros. Comum: falta de memória.
+
+**Solução**: Aumentar memória temporariamente ou buildar localmente.
 
 ---
 
-### Erro ao criar coluna
+### Services ficam 0/1
 
 ```bash
 # Ver logs
-docker service logs inovachat_inovachat_app --tail 50 --follow
+docker service logs inovachat_inovachat_app --tail 100
+
+# Se for erro de migração, rodar manualmente:
+docker exec $(docker ps -qf "name=inovachat_inovachat_app") bundle exec rails db:migrate
 ```
 
-Procure por erros relacionados a `kanban_columns` ou `PG::UndefinedTable`.
+---
 
-Se ver `PG::UndefinedTable: ERROR: relation "kanban_columns" does not exist`, significa que a migração não foi rodada.
+### Kanban não aparece no menu
 
-**Solução**: Rode novamente o comando de migração:
-```bash
-docker exec $(docker ps -qf "name=inovachat_inovachat_app") bundle exec rails db:migrate
+1. **Limpe cache**: `Ctrl + Shift + R`
+2. **Logout e login novamente**
+3. **Verifique se build foi feito**: `docker images | grep inovachat-kanban`
+
+Deve aparecer:
+```
+inovachat-kanban   latest   ...   ...   ...
 ```
 
 ---
 
 ### Kanban de Contatos não aparece
 
-O Kanban de Contatos requer a **feature flag CRM** habilitada.
-
-Para verificar/habilitar:
+Precisa habilitar feature flag CRM:
 
 ```bash
 docker exec -it $(docker ps -qf "name=inovachat_inovachat_app") bundle exec rails console
@@ -174,60 +205,86 @@ docker exec -it $(docker ps -qf "name=inovachat_inovachat_app") bundle exec rail
 
 No console:
 ```ruby
-# Ver features habilitadas
 account = Account.first
-puts account.feature_flags
-
-# Habilitar CRM (se necessário)
 account.enable_features('crm')
 account.save!
-
 puts "✅ CRM habilitado!"
 exit
 ```
 
 ---
 
-## 📊 O que o Kanban faz?
+## 🔄 Atualizações Futuras
 
-### **Kanban de Conversas**
-- Visualize conversas em colunas personalizadas
-- Organize por status (Novos, Em Andamento, Resolvidos, etc.)
-- Arraste para mudar status
-- Cada usuário tem seu próprio board (colunas privadas)
+Quando fizer mudanças no código do Kanban:
 
-### **Kanban de Contatos**
-- Visualize contatos em pipeline
-- Organize por estágio (Lead, Qualificado, Cliente, etc.)
-- Arraste para avançar no funil
-- Cada usuário tem seu próprio board
-
-### **Armazenamento**
-Os dados são salvos em:
-- Tabela `kanban_columns` - definição das colunas
-- Campo `custom_attributes` dos contatos/conversas - qual coluna o item está e posição
-
----
-
-## 🎨 Personalização
-
-Você pode customizar:
-- **Nome das colunas**: Ex: "Novos Leads", "Follow-up", "Fechados"
-- **Cores**: 8 cores disponíveis
-- **Filtros** (em breve): Filtrar cards por critérios
-
----
-
-## ⚡ Comandos Rápidos
-
+### **No Windows:**
 ```bash
-# Atualizar e ativar Kanban
+git add .
+git commit -m "Update: Kanban ..."
+git push
+```
+
+### **Na VPS:**
+```bash
 cd ~/chatwoot
 git pull
-docker exec $(docker ps -qf "name=inovachat_inovachat_app") bundle exec rails db:migrate
-docker service update --force inovachat_inovachat_app
+
+# Re-buildar imagem (necessário!)
+docker build -f Dockerfile.kanban -t inovachat-kanban:latest .
+
+# Atualizar stack
+docker stack deploy -c docker-compose.inovachat-kanban.yaml inovachat
+```
+
+**Sempre rebuilde a imagem quando mudar código!**
+
+---
+
+## ⚡ Comandos Rápidos - Resumo
+
+```bash
+# Fluxo completo de ativação
+cd ~/chatwoot
+git pull
+docker stack rm inovachat
+sleep 60
+docker build -f Dockerfile.kanban -t inovachat-kanban:latest .
+docker stack deploy -c docker-compose.inovachat-kanban.yaml inovachat
+docker service ls
 ```
 
 ---
 
-Pronto! O Kanban deve estar funcionando! 🎉
+## 💡 Alternativa: Versão SEM Kanban
+
+Se quiser voltar para a versão simples (sem Kanban):
+
+```bash
+docker stack rm inovachat
+sleep 60
+docker stack deploy -c docker-compose.inovachat-simples.yaml inovachat
+```
+
+Usa a imagem oficial (mais estável, mas sem Kanban).
+
+---
+
+## 📊 Diferenças entre as versões
+
+| Item | inovachat-simples.yaml | inovachat-kanban.yaml |
+|------|------------------------|----------------------|
+| **Imagem** | `chatwoot/chatwoot:v4.1.0` (oficial) | `inovachat-kanban:latest` (custom) |
+| **Kanban** | ❌ Não disponível | ✅ Disponível |
+| **Build** | Não precisa | Precisa buildar (~15 min) |
+| **Estabilidade** | Alta (imagem oficial) | Boa (custom build) |
+| **Atualizações** | Só git pull + redeploy | Git pull + rebuild + redeploy |
+
+---
+
+Agora o Kanban deve funcionar! 🎉
+
+Se tiver problemas, mande os logs:
+```bash
+docker service logs inovachat_inovachat_app --tail 100 > logs.txt
+```

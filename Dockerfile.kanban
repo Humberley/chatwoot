@@ -1,0 +1,27 @@
+# Dockerfile para InovaChat com Kanban
+# Compila os assets com o código do Kanban incluído
+
+FROM chatwoot/chatwoot:v4.1.0
+
+USER root
+
+# Copiar todo o código atualizado
+COPY --chown=chatwoot:chatwoot app/ /app/app/
+COPY --chown=chatwoot:chatwoot db/migrate/ /app/db/migrate/
+COPY --chown=chatwoot:chatwoot package.json /app/package.json
+
+# Instalar pnpm se não estiver instalado
+RUN npm install -g pnpm@9 || true
+
+WORKDIR /app
+USER chatwoot
+
+# Instalar dependências e compilar assets
+RUN pnpm install --frozen-lockfile --ignore-scripts || pnpm install --ignore-scripts || true
+RUN bin/vite build || bundle exec rails assets:precompile || true
+
+USER root
+RUN chown -R chatwoot:chatwoot /app
+
+USER chatwoot
+WORKDIR /app
