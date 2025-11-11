@@ -15,6 +15,7 @@ services:
       - inovachat_public:/app/public
       - inovachat_mailer:/app/app/views/devise/mailer
       - inovachat_mailers:/app/app/views/mailers
+      - ./public/brand-assets:/app/public/brand-assets  # Logos customizadas
 
     networks:
       - Fluxernet
@@ -95,6 +96,7 @@ services:
       - inovachat_public:/app/public
       - inovachat_mailer:/app/app/views/devise/mailer
       - inovachat_mailers:/app/app/views/mailers
+      - ./public/brand-assets:/app/public/brand-assets  # Logos customizadas
 
     networks:
       - Fluxernet
