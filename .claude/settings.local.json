@@ -13,7 +13,9 @@
       "Bash(jq -r \".[]| \"\"\\(.Name): \\(.State)\"\"\")",
       "Bash(docker logs:*)",
       "Bash(docker volume rm:*)",
-      "Bash(curl:*)"
+      "Bash(curl:*)",
+      "Bash(bundle exec rake:*)",
+      "Bash(cat:*)"
     ],
     "deny": [],
     "ask": []

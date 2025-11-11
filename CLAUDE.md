@@ -295,8 +295,9 @@ const isActive = ref(false);
 ## Branching Model
 
 - Uses git-flow branching model
-- Base branch for PRs: Check current repository - may be `develop` or `main`
+- Base branch for PRs: `develop` (currently using `main` in some forks)
 - Stable releases: `master` branch or `v1.x.x` tags
+- Always check the repository's default branch before creating PRs
 
 ## Helpful Commands
 
