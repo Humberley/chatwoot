@@ -61,7 +61,7 @@ docker ps -a
 ### 5️⃣ **Subir a Nova Stack com InovaChat**
 
 ```bash
-docker stack deploy -c docker-compose.inovachat.yaml chatwoot
+docker stack deploy -c docker-compose.inovachat.yaml chatwoott
 ```
 
 Ou se estiver usando `docker-compose`:

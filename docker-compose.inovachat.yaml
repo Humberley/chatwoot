@@ -3,7 +3,7 @@ services:
 
 ## --------------------------- INOVACHAT --------------------------- ##
 
-  chatwoot_app:
+  inovachat_app:
     build:
       context: .
       dockerfile: Dockerfile.custom
@@ -14,10 +14,10 @@ services:
     entrypoint: docker/entrypoints/rails.sh
 
     volumes:
-      - chatwoot_storage:/app/storage
-      - chatwoot_public:/app/public
-      - chatwoot_mailer:/app/app/views/devise/mailer
-      - chatwoot_mailers:/app/app/views/mailers
+      - inovachat_storage:/app/storage
+      - inovachat_public:/app/public
+      - inovachat_mailer:/app/app/views/devise/mailer
+      - inovachat_mailers:/app/app/views/mailers
 
     networks:
       - Fluxernet
@@ -31,11 +31,11 @@ services:
       - TZ=America/Sao_Paulo
 
       ## Redis / Postgres
-      - REDIS_URL=redis://chatwoot_redis:6379
+      - REDIS_URL=redis://inovachat_redis:6379
       - POSTGRES_HOST=pgvector
       - POSTGRES_USERNAME=postgres
       - POSTGRES_PASSWORD=c04d9b45127a196f0327b075bfcb4469
-      - POSTGRES_DATABASE=chatwoot
+      - POSTGRES_DATABASE=inovachat
 
       ## SMTP
       - MAILER_SENDER_EMAIL=InovaChat <fluxerautoma@gmail.com>
@@ -77,19 +77,19 @@ services:
           memory: 1024M
       labels:
         - traefik.enable=true
-        - traefik.http.routers.chatwoot_app.rule=Host(`crm.fluxer.com.br`)
-        - traefik.http.routers.chatwoot_app.entrypoints=websecure
-        - traefik.http.routers.chatwoot_app.tls.certresolver=letsencryptresolver
-        - traefik.http.routers.chatwoot_app.priority=1
-        - traefik.http.routers.chatwoot_app.service=chatwoot_app
-        - traefik.http.services.chatwoot_app.loadbalancer.server.port=3000
-        - traefik.http.services.chatwoot_app.loadbalancer.passHostHeader=true
-        - traefik.http.middlewares.sslheader.headers.customrequestheaders.X-Forwarded-Proto=https
-        - traefik.http.routers.chatwoot_app.middlewares=sslheader
+        - traefik.http.routers.inovachat_app.rule=Host(`crm.fluxer.com.br`)
+        - traefik.http.routers.inovachat_app.entrypoints=websecure
+        - traefik.http.routers.inovachat_app.tls.certresolver=letsencryptresolver
+        - traefik.http.routers.inovachat_app.priority=1
+        - traefik.http.routers.inovachat_app.service=inovachat_app
+        - traefik.http.services.inovachat_app.loadbalancer.server.port=3000
+        - traefik.http.services.inovachat_app.loadbalancer.passHostHeader=true
+        - traefik.http.middlewares.sslheader-inova.headers.customrequestheaders.X-Forwarded-Proto=https
+        - traefik.http.routers.inovachat_app.middlewares=sslheader-inova
 
 ## --------------------------- INOVACHAT --------------------------- ##
 
-  chatwoot_sidekiq:
+  inovachat_sidekiq:
     build:
       context: .
       dockerfile: Dockerfile.custom
@@ -97,10 +97,10 @@ services:
     command: bundle exec sidekiq -C config/sidekiq.yml
 
     volumes:
-      - chatwoot_storage:/app/storage
-      - chatwoot_public:/app/public
-      - chatwoot_mailer:/app/app/views/devise/mailer
-      - chatwoot_mailers:/app/app/views/mailers
+      - inovachat_storage:/app/storage
+      - inovachat_public:/app/public
+      - inovachat_mailer:/app/app/views/devise/mailer
+      - inovachat_mailers:/app/app/views/mailers
 
     networks:
       - Fluxernet
@@ -114,11 +114,11 @@ services:
       - TZ=America/Sao_Paulo
 
       ## Redis / Postgres
-      - REDIS_URL=redis://chatwoot_redis:6379
+      - REDIS_URL=redis://inovachat_redis:6379
       - POSTGRES_HOST=pgvector
       - POSTGRES_USERNAME=postgres
       - POSTGRES_PASSWORD=c04d9b45127a196f0327b075bfcb4469
-      - POSTGRES_DATABASE=chatwoot
+      - POSTGRES_DATABASE=inovachat
 
       ## SMTP
       - MAILER_SENDER_EMAIL=InovaChat <fluxerautoma@gmail.com>
@@ -159,9 +159,9 @@ services:
           cpus: "1"
           memory: 1024M
 
-## --------------------------- REDIS (sem mudanças) --------------------------- ##
+## --------------------------- REDIS --------------------------- ##
 
-  chatwoot_redis:
+  inovachat_redis:
     image: redis:latest
     command: [
         "redis-server",
@@ -169,7 +169,7 @@ services:
         "--port", "6379"
       ]
     volumes:
-      - chatwoot_redis:/data
+      - inovachat_redis:/data
     networks:
       - Fluxernet
     healthcheck:
@@ -189,16 +189,11 @@ services:
 ## --------------------------- VOLUMES E NETWORKS --------------------------- ##
 
 volumes:
-  chatwoot_storage:
-    external: true
-  chatwoot_public:
-    external: true
-  chatwoot_mailer:
-    external: true
-  chatwoot_mailers:
-    external: true
-  chatwoot_redis:
-    external: true
+  inovachat_storage:
+  inovachat_public:
+  inovachat_mailer:
+  inovachat_mailers:
+  inovachat_redis:
 
 networks:
   Fluxernet:
